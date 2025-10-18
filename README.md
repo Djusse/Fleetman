@@ -1,2 +1,2 @@
 # Fleetman
-application de gestion de flotte de vehicule
+application de gestion de flotte de véhicules
