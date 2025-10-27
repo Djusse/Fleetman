@@ -1,178 +1,172 @@
 -- Activer l'extension PostGIS si ce n'est pas déjà fait
 CREATE EXTENSION IF NOT EXISTS postgis;
 
--- Table user
+-- Table user (avec guillemets car USER est un mot réservé)
 CREATE TABLE "user" (
-    userId SERIAL PRIMARY KEY,
-    userName VARCHAR(100) NOT NULL,
-    userPassword VARCHAR(255) NOT NULL, -- Longueur suffisante pour bcrypt/argon2
-    userEmail VARCHAR(150) NOT NULL UNIQUE,
-    userPhoneNumber VARCHAR(20) NOT NULL,
-    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    user_id SERIAL PRIMARY KEY,
+    user_name VARCHAR(100) NOT NULL,
+    user_password VARCHAR(255) NOT NULL,
+    user_email VARCHAR(150) NOT NULL UNIQUE,
+    user_phone_number VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Table driver
 CREATE TABLE driver (
-    driverId SERIAL PRIMARY KEY,
-    driverName VARCHAR(100) NOT NULL,
-    driverEmail VARCHAR(150) NOT NULL UNIQUE,
-    driverPhoneNumber VARCHAR(20) NOT NULL,
-    emergencyContactName VARCHAR(100),
-    emergencyContact VARCHAR(20),
-    personnalInformations TEXT,
-    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    driver_id SERIAL PRIMARY KEY,
+    driver_name VARCHAR(100) NOT NULL,
+    driver_email VARCHAR(150) NOT NULL UNIQUE,
+    driver_phone_number VARCHAR(20) NOT NULL,
+    emergency_contact_name VARCHAR(100),
+    emergency_contact VARCHAR(20),
+    personal_informations TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Table vehicle
 CREATE TABLE vehicle (
-    vehicleId SERIAL PRIMARY KEY,
-    vehicleMake VARCHAR(50) NOT NULL,
-    vehicleName VARCHAR(100) NOT NULL,
-    vehicleRegistrationNumber VARCHAR(20) NOT NULL UNIQUE,
-    vehicleType VARCHAR(50) NOT NULL,
-    vehicleImage TEXT,
-    vehicleDocument TEXT,
-    vehicleIotAddress VARCHAR(100),
-    vehicleFuelLevel DECIMAL(5,2) CHECK (vehicleFuelLevel >= 0 AND vehicleFuelLevel <= 100),
-    vehicleNumberPassengers INTEGER CHECK (vehicleNumberPassengers > 0),
-    vehicleSpeed DECIMAL(6,2) CHECK (vehicleSpeed >= 0),
-    position GEOMETRY(Point, 4326),
-    userId INTEGER NOT NULL,
-    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_vehicle_user FOREIGN KEY (userId) 
-        REFERENCES "user"(userId) ON DELETE CASCADE
+    vehicle_id SERIAL PRIMARY KEY,
+    vehicle_make VARCHAR(50) NOT NULL,
+    vehicle_name VARCHAR(100) NOT NULL,
+    vehicle_registration_number VARCHAR(20) NOT NULL UNIQUE,
+    vehicle_type VARCHAR(50) NOT NULL,
+    vehicle_image TEXT,
+    vehicle_document TEXT,
+    vehicle_iot_address VARCHAR(100),
+    vehicle_fuel_level DECIMAL(5,2) CHECK (vehicle_fuel_level >= 0 AND vehicle_fuel_level <= 100),
+    vehicle_number_passengers INTEGER CHECK (vehicle_number_passengers > 0),
+    vehicle_speed DECIMAL(6,2) CHECK (vehicle_speed >= 0),
+    user_id INTEGER NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_vehicle_user FOREIGN KEY (user_id)
+        REFERENCES "user"(user_id) ON DELETE CASCADE
 );
 
 -- Table de liaison driver-vehicle (Many-to-Many)
 CREATE TABLE driver_vehicle (
-    driverId INTEGER NOT NULL,
-    vehicleId INTEGER NOT NULL,
-    assignedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (driverId, vehicleId),
-    CONSTRAINT fk_driver_vehicle_driver FOREIGN KEY (driverId) 
-        REFERENCES driver(driverId) ON DELETE CASCADE,
-    CONSTRAINT fk_driver_vehicle_vehicle FOREIGN KEY (vehicleId) 
-        REFERENCES vehicle(vehicleId) ON DELETE CASCADE
+    driver_id INTEGER NOT NULL,
+    vehicle_id INTEGER NOT NULL,
+    assigned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (driver_id, vehicle_id),
+    CONSTRAINT fk_driver_vehicle_driver FOREIGN KEY (driver_id)
+        REFERENCES driver(driver_id) ON DELETE CASCADE,
+    CONSTRAINT fk_driver_vehicle_vehicle FOREIGN KEY (vehicle_id)
+        REFERENCES vehicle(vehicle_id) ON DELETE CASCADE
 );
 
 -- Table notification
 CREATE TABLE notification (
-    notificationId SERIAL PRIMARY KEY,
-    notificationSubject VARCHAR(200) NOT NULL,
-    notificationContent TEXT NOT NULL,
-    notificationDateTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    notificationState BOOLEAN NOT NULL DEFAULT FALSE,
-    userId INTEGER NOT NULL,
-    CONSTRAINT fk_notification_user FOREIGN KEY (userId) 
-        REFERENCES "user"(userId) ON DELETE CASCADE
+    notification_id SERIAL PRIMARY KEY,
+    notification_subject VARCHAR(200) NOT NULL,
+    notification_content TEXT NOT NULL,
+    notification_date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    notification_state BOOLEAN NOT NULL DEFAULT FALSE,
+    user_id INTEGER NOT NULL,
+    CONSTRAINT fk_notification_user FOREIGN KEY (user_id)
+        REFERENCES "user"(user_id) ON DELETE CASCADE
 );
 
--- Table fuelRecharge
-CREATE TABLE fuelRecharge (
-    rechargeId SERIAL PRIMARY KEY,
-    rechargeQuantity DECIMAL(8,2) NOT NULL CHECK (rechargeQuantity > 0),
-    rechargePrice DECIMAL(10,2) NOT NULL CHECK (rechargePrice >= 0),
-    rechargePoint GEOMETRY(Point, 4326), -- Utilisation du type Point PostGIS
-    rechargeDateTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    vehicleId INTEGER NOT NULL,
-    CONSTRAINT fk_fuelrecharge_vehicle FOREIGN KEY (vehicleId) 
-        REFERENCES vehicle(vehicleId) ON DELETE CASCADE
+-- Table fuel_recharge
+CREATE TABLE fuel_recharge (
+    recharge_id SERIAL PRIMARY KEY,
+    recharge_quantity DECIMAL(8,2) NOT NULL CHECK (recharge_quantity > 0),
+    recharge_price DECIMAL(10,2) NOT NULL CHECK (recharge_price >= 0),
+    recharge_point GEOMETRY(Point, 4326),
+    recharge_date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    vehicle_id INTEGER NOT NULL,
+    CONSTRAINT fk_fuel_recharge_vehicle FOREIGN KEY (vehicle_id)
+        REFERENCES vehicle(vehicle_id) ON DELETE CASCADE
 );
 
 -- Table maintenance
 CREATE TABLE maintenance (
-    maintenanceId SERIAL PRIMARY KEY,
-    maintenanceDateTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    maintenancePoint GEOMETRY(Point, 4326),
-    maintenanceSubject VARCHAR(200) NOT NULL,
-    maintenanceCost DECIMAL(10,2) NOT NULL CHECK (maintenanceCost >= 0),
-    vehicleId INTEGER NOT NULL,
-    CONSTRAINT fk_maintenance_vehicle FOREIGN KEY (vehicleId) 
-        REFERENCES vehicle(vehicleId) ON DELETE CASCADE
+    maintenance_id SERIAL PRIMARY KEY,
+    maintenance_date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    maintenance_point GEOMETRY(Point, 4326),
+    maintenance_subject VARCHAR(200) NOT NULL,
+    maintenance_cost DECIMAL(10,2) NOT NULL CHECK (maintenance_cost >= 0),
+    vehicle_id INTEGER NOT NULL,
+    CONSTRAINT fk_maintenance_vehicle FOREIGN KEY (vehicle_id)
+        REFERENCES vehicle(vehicle_id) ON DELETE CASCADE
 );
 
 -- Table trip
 CREATE TABLE trip (
-    tripId SERIAL PRIMARY KEY,
-    departurePoint GEOMETRY(Point, 4326) NOT NULL,
-    arrivalPoint GEOMETRY(Point, 4326) NOT NULL,
-    departureDateTime TIMESTAMP NOT NULL,
-    arrivalDateTime TIMESTAMP,
-    driverId INTEGER NOT NULL,
-    vehicleId INTEGER NOT NULL,
-    CONSTRAINT chk_valid_trip_dates CHECK (departureDateTime <= arrivalDateTime),
-    CONSTRAINT fk_trip_driver FOREIGN KEY (driverId) 
-        REFERENCES driver(driverId) ON DELETE CASCADE,
-    CONSTRAINT fk_trip_vehicle FOREIGN KEY (vehicleId) 
-        REFERENCES vehicle(vehicleId) ON DELETE CASCADE
+    trip_id SERIAL PRIMARY KEY,
+    departure_point GEOMETRY(Point, 4326) NOT NULL,
+    arrival_point GEOMETRY(Point, 4326) NOT NULL,
+    departure_date_time TIMESTAMP NOT NULL,
+    arrival_date_time TIMESTAMP,
+    driver_id INTEGER NOT NULL,
+    vehicle_id INTEGER NOT NULL,
+    CONSTRAINT chk_valid_trip_dates CHECK (departure_date_time <= arrival_date_time),
+    CONSTRAINT fk_trip_driver FOREIGN KEY (driver_id)
+        REFERENCES driver(driver_id) ON DELETE CASCADE,
+    CONSTRAINT fk_trip_vehicle FOREIGN KEY (vehicle_id)
+        REFERENCES vehicle(vehicle_id) ON DELETE CASCADE
 );
 
--- Table position (pour les positions en temps réel)
+-- Table position
 CREATE TABLE position (
-    positionId BIGSERIAL PRIMARY KEY,
+    position_id BIGSERIAL PRIMARY KEY,
     coordinate GEOMETRY(Point, 4326) NOT NULL,
-    positionDateTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    vehicleId INTEGER NOT NULL,
-    CONSTRAINT fk_position_vehicle FOREIGN KEY (vehicleId) 
-        REFERENCES vehicle(vehicleId) ON DELETE CASCADE
+    position_date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    vehicle_id INTEGER NOT NULL,
+    CONSTRAINT fk_position_vehicle FOREIGN KEY (vehicle_id)
+        REFERENCES vehicle(vehicle_id) ON DELETE CASCADE
 );
 
--- Table positionHistory (pour l'historique des positions) avec LineString
-CREATE TABLE positionHistory (
-    positionHistoryId SERIAL PRIMARY KEY,
-    summaryCoordinate GEOMETRY(LineString, 4326) NOT NULL,
-    positionDateTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    vehicleId INTEGER NOT NULL,
-    CONSTRAINT fk_positionhistory_vehicle FOREIGN KEY (vehicleId) 
-        REFERENCES vehicle(vehicleId) ON DELETE CASCADE
+-- Table position_history
+CREATE TABLE position_history (
+    position_history_id SERIAL PRIMARY KEY,
+    summary_coordinate GEOMETRY(LineString, 4326) NOT NULL,
+    position_date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    vehicle_id INTEGER NOT NULL,
+    CONSTRAINT fk_position_history_vehicle FOREIGN KEY (vehicle_id)
+        REFERENCES vehicle(vehicle_id) ON DELETE CASCADE
 );
 
 -- Indexes pour améliorer les performances des requêtes spatiales
 CREATE INDEX idx_vehicle_position ON vehicle USING GIST(position);
-CREATE INDEX idx_fuelrecharge_point ON fuelRecharge USING GIST(rechargePoint);
-CREATE INDEX idx_maintenance_point ON maintenance USING GIST(maintenancePoint);
-CREATE INDEX idx_trip_departure ON trip USING GIST(departurePoint);
-CREATE INDEX idx_trip_arrival ON trip USING GIST(arrivalPoint);
+CREATE INDEX idx_fuel_recharge_point ON fuel_recharge USING GIST(recharge_point);
+CREATE INDEX idx_maintenance_point ON maintenance USING GIST(maintenance_point);
+CREATE INDEX idx_trip_departure ON trip USING GIST(departure_point);
+CREATE INDEX idx_trip_arrival ON trip USING GIST(arrival_point);
 CREATE INDEX idx_position_coordinate ON position USING GIST(coordinate);
-CREATE INDEX idx_positionhistory_linestring ON positionHistory USING GIST(summaryCoordinate);
+CREATE INDEX idx_position_history_linestring ON position_history USING GIST(summary_coordinate);
 
 -- Indexes pour les clés étrangères fréquemment utilisées
-CREATE INDEX idx_vehicle_user ON vehicle(userId);
-CREATE INDEX idx_notification_user ON notification(userId);
-CREATE INDEX idx_fuelrecharge_vehicle ON fuelRecharge(vehicleId);
-CREATE INDEX idx_maintenance_vehicle ON maintenance(vehicleId);
-CREATE INDEX idx_trip_driver ON trip(driverId);
-CREATE INDEX idx_trip_vehicle ON trip(vehicleId);
-CREATE INDEX idx_drivervehicle_driver ON driver_vehicle(driverId);
-CREATE INDEX idx_drivervehicle_vehicle ON driver_vehicle(vehicleId);
-CREATE INDEX idx_position_vehicle ON position(vehicleId);
-CREATE INDEX idx_positionhistory_vehicle ON positionHistory(vehicleId);
+CREATE INDEX idx_vehicle_user ON vehicle(user_id);
+CREATE INDEX idx_notification_user ON notification(user_id);
+CREATE INDEX idx_fuel_recharge_vehicle ON fuel_recharge(vehicle_id);
+CREATE INDEX idx_maintenance_vehicle ON maintenance(vehicle_id);
+CREATE INDEX idx_trip_driver ON trip(driver_id);
+CREATE INDEX idx_trip_vehicle ON trip(vehicle_id);
+CREATE INDEX idx_driver_vehicle_driver ON driver_vehicle(driver_id);
+CREATE INDEX idx_driver_vehicle_vehicle ON driver_vehicle(vehicle_id);
+CREATE INDEX idx_position_vehicle ON position(vehicle_id);
+CREATE INDEX idx_position_history_vehicle ON position_history(vehicle_id);
 
--- Indexes pour les timestamps (requêtes temporelles fréquentes)
-CREATE INDEX idx_position_time ON position(positionTime);
-CREATE INDEX idx_positionhistory_date ON positionHistory(positionDate);
-CREATE INDEX idx_trip_departure_time ON trip(departureDateTime);
-CREATE INDEX idx_fuelrecharge_datetime ON fuelRecharge(rechargeDateTime);
-CREATE INDEX idx_maintenance_datetime ON maintenance(maintenanceDateTime);
+-- Indexes pour les timestamps
+CREATE INDEX idx_position_time ON position(position_date_time);
+CREATE INDEX idx_position_history_date ON position_history(position_date_time);
+CREATE INDEX idx_trip_departure_time ON trip(departure_date_time);
+CREATE INDEX idx_fuel_recharge_datetime ON fuel_recharge(recharge_date_time);
+CREATE INDEX idx_maintenance_datetime ON maintenance(maintenance_date_time);
 
-
-
--- les triggers sont utilisés pour automatiquement mettre a jour la date de dernière modif des tables
--- users, driver et vehicle .
-
--- Fonction trigger pour mettre à jour automatiquement updatedAt
+-- Fonction trigger pour mettre à jour automatiquement updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updatedAt = CURRENT_TIMESTAMP;
+    NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Triggers pour les tables avec updatedAt
+-- Triggers pour les tables avec updated_at
 CREATE TRIGGER update_user_updated_at BEFORE UPDATE ON "user"
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
