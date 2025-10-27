@@ -41,7 +41,6 @@ CREATE TABLE vehicle (
     vehicleFuelLevel DECIMAL(5,2) CHECK (vehicleFuelLevel >= 0 AND vehicleFuelLevel <= 100),
     vehicleNumberPassengers INTEGER CHECK (vehicleNumberPassengers > 0),
     vehicleSpeed DECIMAL(6,2) CHECK (vehicleSpeed >= 0),
-    position GEOMETRY(Point, 4326), -- Utilisation du type Point PostGIS
     userId INTEGER NOT NULL,
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
