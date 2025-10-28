@@ -108,8 +108,8 @@ public class VehicleService {
         if (vehicleUpdateDTO.getVehicleFuelLevel() != null) {
             vehicle.setVehicleFuelLevel(vehicleUpdateDTO.getVehicleFuelLevel());
         }
-        if (vehicleUpdateDTO.getVehicleNumberPassengers() != null) {
-            vehicle.setVehicleNumberPassengers(vehicleUpdateDTO.getVehicleNumberPassengers());
+        if (vehicleUpdateDTO.getVehicleNumberPassagers() != null) {
+            vehicle.setVehicleNumberPassengers(vehicleUpdateDTO.getVehicleNumberPassagers());
         }
         if (vehicleUpdateDTO.getVehicleSpeed() != null) {
             vehicle.setVehicleSpeed(vehicleUpdateDTO.getVehicleSpeed());
