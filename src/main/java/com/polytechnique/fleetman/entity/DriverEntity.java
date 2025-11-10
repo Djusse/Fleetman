@@ -39,6 +39,10 @@ public class DriverEntity {
     @Column( columnDefinition = "TEXT")
     private String personnalInformations;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
+
     @CreationTimestamp
     @Column( nullable = false, updatable = false)
     private LocalDateTime createdAt;

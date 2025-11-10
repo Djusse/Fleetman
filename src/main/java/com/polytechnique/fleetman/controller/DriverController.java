@@ -3,6 +3,7 @@ package com.polytechnique.fleetman.controller;
 import com.polytechnique.fleetman.dto.driver.DriverCreateDTO;
 import com.polytechnique.fleetman.dto.driver.DriverDTO;
 import com.polytechnique.fleetman.dto.driver.DriverUpdateDTO;
+import com.polytechnique.fleetman.dto.vehicle.VehicleDTO;
 import com.polytechnique.fleetman.service.DriverService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -204,5 +205,33 @@ public class DriverController {
             @PathVariable Long driverId) {
         driverService.deleteDriver(driverId);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @GetMapping("/user/{userId}")
+    @Operation(
+            summary = "Récupérer les conducteurs d'un utilisateur",
+            description = "Retourne tous les conducteurs associés à un utilisateur spécifique"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Liste des conducteurs de l'utilisateur récupérée avec succès",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = VehicleDTO.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "conducteurs non trouvé",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<List<DriverDTO>> getVehiclesByUserId(
+            @Parameter(description = "ID de l'utilisateur", required = true, example = "1")
+            @PathVariable Long userId) {
+        List<DriverDTO> vehicles = driverService.getDriverByUserId(userId);
+        return ResponseEntity.ok(vehicles);
     }
 }
