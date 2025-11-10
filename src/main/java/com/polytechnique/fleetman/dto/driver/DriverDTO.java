@@ -58,6 +58,12 @@ public class DriverDTO {
     private String personnalInformations;
 
     @Schema(
+            description = "ID de l'utilisateur responsable du véhicule",
+            example = "1"
+    )
+    private Long userId;
+
+    @Schema(
             description = "Date et heure de création du conducteur",
             example = "2025-01-15T10:30:00",
             accessMode = Schema.AccessMode.READ_ONLY
