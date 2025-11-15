@@ -20,9 +20,12 @@ CREATE TABLE driver (
     driver_phone_number VARCHAR(20) NOT NULL,
     emergency_contact_name VARCHAR(100),
     emergency_contact VARCHAR(20),
-    personal_informations TEXT,
+    personnal_informations TEXT,
+    user_id INTEGER NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_driver_user FOREIGN KEY (user_id)
+            REFERENCES "user"(user_id) ON DELETE CASCADE
 );
 
 -- Table vehicle

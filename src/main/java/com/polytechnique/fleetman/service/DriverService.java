@@ -3,8 +3,11 @@ package com.polytechnique.fleetman.service;
 import com.polytechnique.fleetman.dto.driver.DriverCreateDTO;
 import com.polytechnique.fleetman.dto.driver.DriverDTO;
 import com.polytechnique.fleetman.dto.driver.DriverUpdateDTO;
+import com.polytechnique.fleetman.dto.vehicle.VehicleDTO;
 import com.polytechnique.fleetman.entity.DriverEntity;
+import com.polytechnique.fleetman.entity.UserEntity;
 import com.polytechnique.fleetman.repository.DriverRepository;
+import com.polytechnique.fleetman.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,12 +20,16 @@ import java.util.stream.Collectors;
 public class DriverService {
 
     private final DriverRepository driverRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public DriverDTO createDriver(DriverCreateDTO driverCreateDTO) {
         if (driverRepository.existsByDriverEmail(driverCreateDTO.getDriverEmail())) {
             throw new RuntimeException("Email déjà utilisé");
         }
+
+        UserEntity user = userRepository.findById(driverCreateDTO.getUserId())
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
         DriverEntity driver = new DriverEntity();
         driver.setDriverName(driverCreateDTO.getDriverName());
@@ -96,6 +103,14 @@ public class DriverService {
         }
         driverRepository.deleteById(driverId);
     }
+
+    @Transactional(readOnly = true)
+    public List<DriverDTO> getDriverByUserId(Long userId) {
+        return driverRepository.findByUser_UserId(userId).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
 
     private DriverDTO convertToDTO(DriverEntity driver) {
         return new DriverDTO(
