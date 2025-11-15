@@ -59,5 +59,5 @@ public class DriverUpdateDTO {
             description = "Informations personnelles supplémentaires ou notes concernant le conducteur",
             example = "Permis B et C, spécialisé en transport longue distance"
     )
-    private String personnalInformations;
+    private String personalInformations;
 }

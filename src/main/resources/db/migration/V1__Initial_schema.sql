@@ -1,5 +1,5 @@
 -- Activer l'extension PostGIS si ce n'est pas déjà fait
-CREATE EXTENSION IF NOT EXISTS postgis;
+-- CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- Table user (avec guillemets car USER est un mot réservé)
 CREATE TABLE "user" (

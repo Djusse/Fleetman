@@ -162,6 +162,26 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>11.15.0</version>   <!-- même version que le dépendency -->
+				<configuration>
+					<url>jdbc:postgresql://localhost:5432/fleetmanBD</url>
+					<user>admin</user>
+					<password>admin</password>
+				</configuration>
+				<dependencies>
+					<!-- driver PostgreSQL manquant pour le plugin -->
+					<dependency>
+						<groupId>org.postgresql</groupId>
+						<artifactId>postgresql</artifactId>
+						<version>42.7.4</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>

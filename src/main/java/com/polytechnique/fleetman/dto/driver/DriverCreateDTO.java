@@ -66,5 +66,5 @@ public class DriverCreateDTO {
             description = "Informations personnelles supplémentaires ou notes concernant le conducteur",
             example = "Permis B, 10 ans d'expérience"
     )
-    private String personnalInformations;
+    private String personalInformations;
 }

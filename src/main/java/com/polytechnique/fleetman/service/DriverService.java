@@ -30,7 +30,7 @@ public class DriverService {
         driver.setDriverPhoneNumber(driverCreateDTO.getDriverPhoneNumber());
         driver.setEmergencyContactName(driverCreateDTO.getEmergencyContactName());
         driver.setEmergencyContact(driverCreateDTO.getEmergencyContact());
-        driver.setPersonnalInformations(driverCreateDTO.getPersonnalInformations());
+        driver.setPersonalInformations(driverCreateDTO.getPersonalInformations());
 
         DriverEntity savedDriver = driverRepository.save(driver);
         return convertToDTO(savedDriver);
@@ -81,8 +81,8 @@ public class DriverService {
         if (driverUpdateDTO.getEmergencyContact() != null) {
             driver.setEmergencyContact(driverUpdateDTO.getEmergencyContact());
         }
-        if (driverUpdateDTO.getPersonnalInformations() != null) {
-            driver.setPersonnalInformations(driverUpdateDTO.getPersonnalInformations());
+        if (driverUpdateDTO.getPersonalInformations() != null) {
+            driver.setPersonalInformations(driverUpdateDTO.getPersonalInformations());
         }
 
         DriverEntity updatedDriver = driverRepository.save(driver);
@@ -105,7 +105,7 @@ public class DriverService {
                 driver.getDriverPhoneNumber(),
                 driver.getEmergencyContactName(),
                 driver.getEmergencyContact(),
-                driver.getPersonnalInformations(),
+                driver.getPersonalInformations(),
                 driver.getCreatedAt(),
                 driver.getUpdatedAt()
         );
