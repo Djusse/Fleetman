@@ -67,13 +67,5 @@ public class DriverCreateDTO {
             description = "Informations personnelles supplémentaires ou notes concernant le conducteur",
             example = "Permis B, 10 ans d'expérience"
     )
-    private String personnalInformations;
-
-    @NotNull(message = "L'ID utilisateur est obligatoire")
-    @Schema(
-            description = "ID de l'utilisateur propriétaire ou responsable du véhicule",
-            example = "1",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private Long userId;
+    private String personalInformations;
 }

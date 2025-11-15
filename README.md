@@ -50,50 +50,35 @@ Ce projet utilise la bibliothèque ultimate-geojson pour le support avancé des 
 
 3. **Télécharger les dépendances Maven**
    ```bash
-   # Se placer dans le dossier docker
-    cd docker
-   
    # Télécharger toutes les dépendances
     mvn clean install
 
     # Ou pour forcer le téléchargement
     mvn dependency:resolve
 
-4. **Initialiser la base de données avec Docker**
+4. **Créer la base de données avec postgis**
+    ```bash
+   # installer postgis 3
+    sudo apt install postgresql-17-postgis-3
+   # Créer la base de donnée et l'utilisateur : nom et mot de passe respectivement admin admin
+   sudo -u postgres psql -f - <<SQL
+    CREATE DATABASE "fleetmanBD";
+    CREATE USER admin PASSWORD 'admin';
+    ALTER DATABASE "fleetmanBD" OWNER TO admin;
+    \c fleetmanBD
+    GRANT ALL ON SCHEMA public TO admin;
+    GRANT CREATE ON DATABASE "fleetmanBD" TO admin;
+    CREATE EXTENSION IF NOT EXISTS postgis;
+    SQL
+  
+### Lancer l'application 
+1.
+    ```bash
+    cd Fleetman
+    ./mvnw spring-boot:run
 
-    Lancer les services avec Docker Compose :
-       ```bash
-       # Se placer dans le dossier docker
-        cd docker
-
-        # Démarrer les services en arrière-plan
-        sudo docker-compose up -d
-
-        # Vérifier que les services sont en cours d'exécution
-        sudo docker-compose ps
-
-    Services démarrés :
-
-    ✅ PostgreSQL + PostGIS sur le port 5432
-
-    ✅ Adminer (interface web) sur le port 8082
-
-### Accéder à l'interface Adminer :
-
-la base de donnée initialisée est disponible au lien: http://localhost:8082
-
-Identifiants de connexion :
-
-- **Système** : PostgreSQL
-- **Serveur** : postgis
-- **Utilisateur** : admin
-- **Mot de passe** : admin
-- **Base de données** : fleetmanBD
-
-### Utilisation 
 Une fois l'application démarrée, accédez aux différentes interfaces :
 
 - 🌐 Application Spring Boot : http://localhost:9080
 - 📖 Documentation API Swagger : http://localhost:9080/api/swagger-ui.html
-- 🗄️ Interface Adminer (BDD) : http://localhost:8082
 - 📋 API Docs JSON : http://localhost:9080/api/v3/api-docs

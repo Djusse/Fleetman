@@ -37,7 +37,7 @@ public class DriverEntity {
     private String emergencyContact;
 
     @Column( columnDefinition = "TEXT")
-    private String personnalInformations;
+    private String personalInformations;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

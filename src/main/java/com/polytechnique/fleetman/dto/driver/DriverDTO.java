@@ -55,7 +55,7 @@ public class DriverDTO {
             description = "Informations personnelles supplémentaires",
             example = "Permis B, 10 ans d'expérience"
     )
-    private String personnalInformations;
+    private String personalInformations;
 
     @Schema(
             description = "ID de l'utilisateur responsable du véhicule",
