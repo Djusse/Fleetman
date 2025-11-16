@@ -3,6 +3,7 @@ package com.polytechnique.fleetman.service;
 import com.polytechnique.fleetman.dto.driver.DriverCreateDTO;
 import com.polytechnique.fleetman.dto.driver.DriverDTO;
 import com.polytechnique.fleetman.dto.driver.DriverUpdateDTO;
+import com.polytechnique.fleetman.dto.vehicle.VehicleDTO;
 import com.polytechnique.fleetman.entity.DriverEntity;
 import com.polytechnique.fleetman.repository.DriverRepository;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,13 @@ public class DriverService {
     @Transactional(readOnly = true)
     public List<DriverDTO> getAllDrivers() {
         return driverRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<DriverDTO> getDriversByUserId(Long userId) {
+        return driverRepository.findByUser_UserId(userId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
