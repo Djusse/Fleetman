@@ -4,6 +4,7 @@ import com.polytechnique.fleetman.dto.maintenance.MaintenanceCreateDTO;
 import com.polytechnique.fleetman.dto.maintenance.MaintenanceDTO;
 import com.polytechnique.fleetman.entity.MaintenanceEntity;
 import com.polytechnique.fleetman.entity.VehicleEntity;
+import com.polytechnique.fleetman.exception.ResourceNotFoundException;
 import com.polytechnique.fleetman.repository.MaintenanceRepository;
 import com.polytechnique.fleetman.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class MaintenanceService {
     @Transactional
     public MaintenanceDTO createMaintenance(MaintenanceCreateDTO maintenanceCreateDTO) {
         VehicleEntity vehicle = vehicleRepository.findById(maintenanceCreateDTO.getVehicleId())
-                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
 
         MaintenanceEntity maintenance = new MaintenanceEntity();
         maintenance.setMaintenanceSubject(maintenanceCreateDTO.getMaintenanceSubject());
@@ -43,7 +44,7 @@ public class MaintenanceService {
     @Transactional(readOnly = true)
     public MaintenanceDTO getMaintenanceById(Long maintenanceId) {
         MaintenanceEntity maintenance = maintenanceRepository.findById(maintenanceId)
-                .orElseThrow(() -> new RuntimeException("Maintenance non trouvée"));
+                .orElseThrow(() -> new ResourceNotFoundException("Maintenance non trouvée"));
         return convertToDTO(maintenance);
     }
 
@@ -56,6 +57,10 @@ public class MaintenanceService {
 
     @Transactional(readOnly = true)
     public List<MaintenanceDTO> getMaintenancesByVehicleId(Long vehicleId) {
+
+        VehicleEntity vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
+
         return maintenanceRepository.findByVehicle_VehicleIdOrderByMaintenanceDateTimeDesc(vehicleId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -64,7 +69,7 @@ public class MaintenanceService {
     @Transactional
     public void deleteMaintenance(Long maintenanceId) {
         if (!maintenanceRepository.existsById(maintenanceId)) {
-            throw new RuntimeException("Maintenance non trouvée");
+            throw new ResourceNotFoundException("Maintenance non trouvée");
         }
         maintenanceRepository.deleteById(maintenanceId);
     }

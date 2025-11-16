@@ -4,6 +4,7 @@ import com.polytechnique.fleetman.dto.notification.NotificationCreateDTO;
 import com.polytechnique.fleetman.dto.notification.NotificationDTO;
 import com.polytechnique.fleetman.entity.NotificationEntity;
 import com.polytechnique.fleetman.entity.UserEntity;
+import com.polytechnique.fleetman.exception.ResourceNotFoundException;
 import com.polytechnique.fleetman.repository.NotificationRepository;
 import com.polytechnique.fleetman.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class NotificationService {
     @Transactional
     public NotificationDTO createNotification(NotificationCreateDTO notificationCreateDTO) {
         UserEntity user = userRepository.findById(notificationCreateDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
         NotificationEntity notification = new NotificationEntity();
         notification.setNotificationSubject(notificationCreateDTO.getNotificationSubject());
@@ -40,7 +41,7 @@ public class NotificationService {
     @Transactional(readOnly = true)
     public NotificationDTO getNotificationById(Long notificationId) {
         NotificationEntity notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification non trouvée"));
+                .orElseThrow(() -> new ResourceNotFoundException("Notification non trouvée"));
         return convertToDTO(notification);
     }
 
@@ -53,6 +54,10 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public List<NotificationDTO> getNotificationsByUserId(Long userId) {
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+
         return notificationRepository.findByUser_UserId(userId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -60,6 +65,10 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public List<NotificationDTO> getUnreadNotificationsByUserId(Long userId) {
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+
         return notificationRepository.findByUser_UserIdAndNotificationState(userId, false).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -67,13 +76,17 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public long countUnreadNotifications(Long userId) {
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+
         return notificationRepository.countByUser_UserIdAndNotificationState(userId, false);
     }
 
     @Transactional
     public NotificationDTO markAsRead(Long notificationId) {
         NotificationEntity notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification non trouvée"));
+                .orElseThrow(() -> new ResourceNotFoundException("Notification non trouvée"));
 
         notification.setNotificationState(true);
         NotificationEntity updatedNotification = notificationRepository.save(notification);
@@ -92,7 +105,7 @@ public class NotificationService {
     @Transactional
     public void deleteNotification(Long notificationId) {
         if (!notificationRepository.existsById(notificationId)) {
-            throw new RuntimeException("Notification non trouvée");
+            throw new ResourceNotFoundException("Notification non trouvée");
         }
         notificationRepository.deleteById(notificationId);
     }
