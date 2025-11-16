@@ -6,6 +6,8 @@ import com.polytechnique.fleetman.dto.driver.DriverUpdateDTO;
 import com.polytechnique.fleetman.dto.vehicle.VehicleDTO;
 import com.polytechnique.fleetman.entity.DriverEntity;
 import com.polytechnique.fleetman.entity.UserEntity;
+import com.polytechnique.fleetman.exception.ResourceAlreadyExistsException;
+import com.polytechnique.fleetman.exception.ResourceNotFoundException;
 import com.polytechnique.fleetman.repository.DriverRepository;
 import com.polytechnique.fleetman.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,11 +27,11 @@ public class DriverService {
     @Transactional
     public DriverDTO createDriver(DriverCreateDTO driverCreateDTO) {
         if (driverRepository.existsByDriverEmail(driverCreateDTO.getDriverEmail())) {
-            throw new RuntimeException("Email déjà utilisé");
+            throw new ResourceAlreadyExistsException("Email déjà utilisé");
         }
 
         UserEntity user = userRepository.findById(driverCreateDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
         DriverEntity driver = new DriverEntity();
         driver.setDriverName(driverCreateDTO.getDriverName());
@@ -46,14 +48,14 @@ public class DriverService {
     @Transactional(readOnly = true)
     public DriverDTO getDriverById(Long driverId) {
         DriverEntity driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new RuntimeException("Conducteur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur non trouvé"));
         return convertToDTO(driver);
     }
 
     @Transactional(readOnly = true)
     public DriverDTO getDriverByEmail(String email) {
         DriverEntity driver = driverRepository.findByDriverEmail(email)
-                .orElseThrow(() -> new RuntimeException("Conducteur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur non trouvé"));
         return convertToDTO(driver);
     }
 
@@ -74,7 +76,7 @@ public class DriverService {
     @Transactional
     public DriverDTO updateDriver(Long driverId, DriverUpdateDTO driverUpdateDTO) {
         DriverEntity driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new RuntimeException("Conducteur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur non trouvé"));
 
         if (driverUpdateDTO.getDriverName() != null) {
             driver.setDriverName(driverUpdateDTO.getDriverName());
@@ -82,7 +84,7 @@ public class DriverService {
         if (driverUpdateDTO.getDriverEmail() != null) {
             if (!driver.getDriverEmail().equals(driverUpdateDTO.getDriverEmail())
                     && driverRepository.existsByDriverEmail(driverUpdateDTO.getDriverEmail())) {
-                throw new RuntimeException("Email déjà utilisé");
+                throw new ResourceAlreadyExistsException("Email déjà utilisé");
             }
             driver.setDriverEmail(driverUpdateDTO.getDriverEmail());
         }
@@ -106,7 +108,7 @@ public class DriverService {
     @Transactional
     public void deleteDriver(Long driverId) {
         if (!driverRepository.existsById(driverId)) {
-            throw new RuntimeException("Conducteur non trouvé");
+            throw new ResourceNotFoundException("Conducteur non trouvé");
         }
         driverRepository.deleteById(driverId);
     }
