@@ -12,6 +12,7 @@ CREATE TABLE "user" (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+
 -- Table driver
 CREATE TABLE driver (
     driver_id BIGSERIAL PRIMARY KEY,
@@ -21,8 +22,11 @@ CREATE TABLE driver (
     emergency_contact_name VARCHAR(100),
     emergency_contact VARCHAR(20),
     personal_informations TEXT,
+    user_id BIGSERIAL NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_driver_user FOREIGN KEY (user_id)
+            REFERENCES "user"(user_id) ON DELETE CASCADE
 );
 
 -- Table vehicle
@@ -38,7 +42,7 @@ CREATE TABLE vehicle (
     vehicle_fuel_level DECIMAL(5,2) CHECK (vehicle_fuel_level >= 0 AND vehicle_fuel_level <= 100),
     vehicle_number_passengers INTEGER CHECK (vehicle_number_passengers > 0),
     vehicle_speed DECIMAL(6,2) CHECK (vehicle_speed >= 0),
-    user_id BIGINT NOT NULL,
+    user_id BIGSERIAL NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_vehicle_user FOREIGN KEY (user_id)

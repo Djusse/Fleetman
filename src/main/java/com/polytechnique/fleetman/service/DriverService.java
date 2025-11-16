@@ -128,6 +128,7 @@ public class DriverService {
                 driver.getEmergencyContactName(),
                 driver.getEmergencyContact(),
                 driver.getPersonalInformations(),
+                driver.getUser().getUserId(),
                 driver.getCreatedAt(),
                 driver.getUpdatedAt()
         );
