@@ -64,6 +64,13 @@ public class DriverService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<DriverDTO> getDriversByUserId(Long userId) {
+        return driverRepository.findByUser_UserId(userId).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public DriverDTO updateDriver(Long driverId, DriverUpdateDTO driverUpdateDTO) {
         DriverEntity driver = driverRepository.findById(driverId)
