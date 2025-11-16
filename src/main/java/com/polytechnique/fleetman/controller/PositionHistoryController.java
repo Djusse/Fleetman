@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/position-histories")
+@RequestMapping("/position-histories")
 @RequiredArgsConstructor
 public class PositionHistoryController {
 

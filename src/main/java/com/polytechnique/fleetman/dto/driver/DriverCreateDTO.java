@@ -3,6 +3,7 @@ package com.polytechnique.fleetman.dto.driver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -67,4 +68,12 @@ public class DriverCreateDTO {
             example = "Permis B, 10 ans d'expérience"
     )
     private String personalInformations;
+
+    @NotNull(message = "L'ID utilisateur est obligatoire")
+    @Schema(
+            description = "ID de l'utilisateur propriétaire ou responsable du véhicule",
+            example = "1",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private Long userId;
 }

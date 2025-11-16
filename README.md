@@ -82,3 +82,12 @@ Une fois l'application démarrée, accédez aux différentes interfaces :
 - 🌐 Application Spring Boot : http://localhost:9080
 - 📖 Documentation API Swagger : http://localhost:9080/api/swagger-ui.html
 - 📋 API Docs JSON : http://localhost:9080/api/v3/api-docs
+
+### commandes utiles
+```bash
+    # réparer la bd via flyway 
+     ./mvnw flyway:repair
+    #se connecter a la base de donnée via le terminal
+      psql -U admin -d fleetmanBD
+     # afficher les tables lorsque nous sommes dans la base de donnée
+      \dt
