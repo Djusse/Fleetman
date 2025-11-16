@@ -5,6 +5,8 @@ import com.polytechnique.fleetman.dto.vehicle.VehicleDTO;
 import com.polytechnique.fleetman.dto.vehicle.VehicleUpdateDTO;
 import com.polytechnique.fleetman.entity.UserEntity;
 import com.polytechnique.fleetman.entity.VehicleEntity;
+import com.polytechnique.fleetman.exception.ResourceAlreadyExistsException;
+import com.polytechnique.fleetman.exception.ResourceNotFoundException;
 import com.polytechnique.fleetman.repository.UserRepository;
 import com.polytechnique.fleetman.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +26,11 @@ public class VehicleService {
     @Transactional
     public VehicleDTO createVehicle(VehicleCreateDTO vehicleCreateDTO) {
         if (vehicleRepository.existsByVehicleRegistrationNumber(vehicleCreateDTO.getVehicleRegistrationNumber())) {
-            throw new RuntimeException("Numéro d'immatriculation déjà utilisé");
+            throw new ResourceAlreadyExistsException("Numéro d'immatriculation déjà utilisé");
         }
 
         UserEntity user = userRepository.findById(vehicleCreateDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
         VehicleEntity vehicle = new VehicleEntity();
         vehicle.setVehicleMake(vehicleCreateDTO.getVehicleMake());
@@ -50,14 +52,14 @@ public class VehicleService {
     @Transactional(readOnly = true)
     public VehicleDTO getVehicleById(Long vehicleId) {
         VehicleEntity vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
         return convertToDTO(vehicle);
     }
 
     @Transactional(readOnly = true)
     public VehicleDTO getVehicleByRegistrationNumber(String registrationNumber) {
         VehicleEntity vehicle = vehicleRepository.findByVehicleRegistrationNumber(registrationNumber)
-                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
         return convertToDTO(vehicle);
     }
 
@@ -70,6 +72,11 @@ public class VehicleService {
 
     @Transactional(readOnly = true)
     public List<VehicleDTO> getVehiclesByUserId(Long userId) {
+
+        // vérifions si l'utilisateur existe
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+
         return vehicleRepository.findByUser_UserId(userId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -85,7 +92,7 @@ public class VehicleService {
     @Transactional
     public VehicleDTO updateVehicle(Long vehicleId, VehicleUpdateDTO vehicleUpdateDTO) {
         VehicleEntity vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
 
         if (vehicleUpdateDTO.getVehicleMake() != null) {
             vehicle.setVehicleMake(vehicleUpdateDTO.getVehicleMake());
@@ -122,7 +129,7 @@ public class VehicleService {
     @Transactional
     public void deleteVehicle(Long vehicleId) {
         if (!vehicleRepository.existsById(vehicleId)) {
-            throw new RuntimeException("Véhicule non trouvé");
+            throw new ResourceNotFoundException("Véhicule non trouvé");
         }
         vehicleRepository.deleteById(vehicleId);
     }

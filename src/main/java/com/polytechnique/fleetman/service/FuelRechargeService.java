@@ -4,6 +4,7 @@ import com.polytechnique.fleetman.dto.fuelrecharge.FuelRechargeCreateDTO;
 import com.polytechnique.fleetman.dto.fuelrecharge.FuelRechargeDTO;
 import com.polytechnique.fleetman.entity.FuelRechargeEntity;
 import com.polytechnique.fleetman.entity.VehicleEntity;
+import com.polytechnique.fleetman.exception.ResourceNotFoundException;
 import com.polytechnique.fleetman.repository.FuelRechargeRepository;
 import com.polytechnique.fleetman.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class FuelRechargeService {
     @Transactional
     public FuelRechargeDTO createFuelRecharge(FuelRechargeCreateDTO fuelRechargeCreateDTO) {
         VehicleEntity vehicle = vehicleRepository.findById(fuelRechargeCreateDTO.getVehicleId())
-                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
 
         FuelRechargeEntity fuelRecharge = new FuelRechargeEntity();
         fuelRecharge.setRechargeQuantity(fuelRechargeCreateDTO.getRechargeQuantity());
@@ -43,7 +44,7 @@ public class FuelRechargeService {
     @Transactional(readOnly = true)
     public FuelRechargeDTO getFuelRechargeById(Long rechargeId) {
         FuelRechargeEntity fuelRecharge = fuelRechargeRepository.findById(rechargeId)
-                .orElseThrow(() -> new RuntimeException("Recharge non trouvée"));
+                .orElseThrow(() -> new ResourceNotFoundException("Recharge non trouvée"));
         return convertToDTO(fuelRecharge);
     }
 
@@ -56,6 +57,10 @@ public class FuelRechargeService {
 
     @Transactional(readOnly = true)
     public List<FuelRechargeDTO> getFuelRechargesByVehicleId(Long vehicleId) {
+
+        VehicleEntity vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
+
         return fuelRechargeRepository.findByVehicle_VehicleIdOrderByRechargeDateTimeDesc(vehicleId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -64,7 +69,7 @@ public class FuelRechargeService {
     @Transactional
     public void deleteFuelRecharge(Long rechargeId) {
         if (!fuelRechargeRepository.existsById(rechargeId)) {
-            throw new RuntimeException("Recharge non trouvée");
+            throw new ResourceNotFoundException("Recharge non trouvée");
         }
         fuelRechargeRepository.deleteById(rechargeId);
     }

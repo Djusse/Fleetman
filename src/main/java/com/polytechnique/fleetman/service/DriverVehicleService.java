@@ -6,6 +6,9 @@ import com.polytechnique.fleetman.entity.DriverEntity;
 import com.polytechnique.fleetman.entity.DriverVehicleEntity;
 import com.polytechnique.fleetman.entity.DriverVehicleId;
 import com.polytechnique.fleetman.entity.VehicleEntity;
+import com.polytechnique.fleetman.exception.BadReloadingException;
+import com.polytechnique.fleetman.exception.DriverAlreadyAssignException;
+import com.polytechnique.fleetman.exception.ResourceNotFoundException;
 import com.polytechnique.fleetman.repository.DriverRepository;
 import com.polytechnique.fleetman.repository.DriverVehicleRepository;
 import com.polytechnique.fleetman.repository.VehicleRepository;
@@ -28,17 +31,17 @@ public class DriverVehicleService {
     public DriverVehicleDTO assignDriverToVehicle(DriverVehicleCreateDTO driverVehicleCreateDTO) {
         // Vérifier que le conducteur existe
         DriverEntity driver = driverRepository.findById(driverVehicleCreateDTO.getDriverId())
-                .orElseThrow(() -> new RuntimeException("Conducteur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur non trouvé"));
 
         // Vérifier que le véhicule existe
         VehicleEntity vehicle = vehicleRepository.findById(driverVehicleCreateDTO.getVehicleId())
-                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
 
         // Vérifier si l'assignation existe déjà
         if (driverVehicleRepository.existsByDriver_DriverIdAndVehicle_VehicleId(
                 driverVehicleCreateDTO.getDriverId(),
                 driverVehicleCreateDTO.getVehicleId())) {
-            throw new RuntimeException("Ce conducteur est déjà assigné à ce véhicule");
+            throw new DriverAlreadyAssignException("Ce conducteur est déjà assigné à ce véhicule");
         }
 
         // Créer l'assignation
@@ -54,13 +57,17 @@ public class DriverVehicleService {
         // Recharger l'entité depuis la base de données
         DriverVehicleId id = new DriverVehicleId(saved.getDriver().getDriverId(), saved.getVehicle().getVehicleId());
         DriverVehicleEntity reloaded = driverVehicleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Erreur lors du rechargement"));
+                .orElseThrow(() -> new BadReloadingException("Erreur lors du rechargement"));
 
         return convertToDTO(reloaded);
     }
 
     @Transactional(readOnly = true)
     public List<DriverVehicleDTO> getVehiclesByDriverId(Long driverId) {
+
+        DriverEntity driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur non trouvé"));
+
         return driverVehicleRepository.findByDriver_DriverId(driverId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -68,6 +75,10 @@ public class DriverVehicleService {
 
     @Transactional(readOnly = true)
     public List<DriverVehicleDTO> getDriversByVehicleId(Long vehicleId) {
+
+        VehicleEntity vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
+
         return driverVehicleRepository.findByVehicle_VehicleId(vehicleId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -83,13 +94,13 @@ public class DriverVehicleService {
     @Transactional
     public void unassignDriverFromVehicle(Long driverId, Long vehicleId) {
         DriverEntity driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new RuntimeException("Conducteur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur non trouvé"));
         VehicleEntity vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
 
         DriverVehicleEntity driverVehicle = driverVehicleRepository
                 .findByDriverAndVehicle(driver, vehicle)
-                .orElseThrow(() -> new RuntimeException("Assignation non trouvée"));
+                .orElseThrow(() -> new ResourceNotFoundException("Assignation non trouvée"));
 
         driverVehicleRepository.delete(driverVehicle);
     }

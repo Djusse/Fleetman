@@ -6,6 +6,7 @@ import com.polytechnique.fleetman.dto.trip.TripUpdateDTO;
 import com.polytechnique.fleetman.entity.DriverEntity;
 import com.polytechnique.fleetman.entity.TripEntity;
 import com.polytechnique.fleetman.entity.VehicleEntity;
+import com.polytechnique.fleetman.exception.ResourceNotFoundException;
 import com.polytechnique.fleetman.repository.DriverRepository;
 import com.polytechnique.fleetman.repository.TripRepository;
 import com.polytechnique.fleetman.repository.VehicleRepository;
@@ -28,10 +29,10 @@ public class TripService {
     @Transactional
     public TripDTO createTrip(TripCreateDTO tripCreateDTO) {
         DriverEntity driver = driverRepository.findById(tripCreateDTO.getDriverId())
-                .orElseThrow(() -> new RuntimeException("Conducteur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur non trouvé"));
 
         VehicleEntity vehicle = vehicleRepository.findById(tripCreateDTO.getVehicleId())
-                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
 
         Point departurePoint = tripCreateDTO.getDeparturePoint() ;
         Point arrivalPoint = tripCreateDTO.getArrivalPoint() ;
@@ -50,7 +51,7 @@ public class TripService {
     @Transactional(readOnly = true)
     public TripDTO getTripById(Long tripId) {
         TripEntity trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("Trajet non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Trajet non trouvé"));
         return convertToDTO(trip);
     }
 
@@ -63,6 +64,11 @@ public class TripService {
 
     @Transactional(readOnly = true)
     public List<TripDTO> getTripsByVehicleId(Long vehicleId) {
+
+        // vérifions si le vehicule existe
+        VehicleEntity vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
+
         return tripRepository.findByVehicle_VehicleId(vehicleId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -70,6 +76,11 @@ public class TripService {
 
     @Transactional(readOnly = true)
     public List<TripDTO> getTripsByDriverId(Long driverId) {
+
+        // vérifions si le conducteur existe
+        DriverEntity driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur non trouvé"));
+
         return tripRepository.findByDriver_DriverId(driverId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -85,7 +96,7 @@ public class TripService {
     @Transactional
     public TripDTO updateTrip(Long tripId, TripUpdateDTO tripUpdateDTO) {
         TripEntity trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("Trajet non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Trajet non trouvé"));
 
         if (tripUpdateDTO.getArrivalPoint() != null) {
             trip.setArrivalPoint(tripUpdateDTO.getArrivalPoint());
@@ -102,7 +113,7 @@ public class TripService {
     @Transactional
     public void deleteTrip(Long tripId) {
         if (!tripRepository.existsById(tripId)) {
-            throw new RuntimeException("Trajet non trouvé");
+            throw new ResourceNotFoundException("Trajet non trouvé");
         }
         tripRepository.deleteById(tripId);
     }

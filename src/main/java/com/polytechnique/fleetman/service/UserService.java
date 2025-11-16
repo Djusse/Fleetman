@@ -5,6 +5,9 @@ import com.polytechnique.fleetman.dto.user.UserDTO;
 import com.polytechnique.fleetman.dto.user.UserPasswordUpdateDTO;
 import com.polytechnique.fleetman.dto.user.UserUpdateDTO;
 import com.polytechnique.fleetman.entity.UserEntity;
+import com.polytechnique.fleetman.exception.InvalidPasswordException;
+import com.polytechnique.fleetman.exception.ResourceAlreadyExistsException;
+import com.polytechnique.fleetman.exception.ResourceNotFoundException;
 import com.polytechnique.fleetman.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,7 +27,7 @@ public class UserService {
     @Transactional
     public UserDTO createUser(UserCreateDTO userCreateDTO) {
         if (userRepository.existsByUserEmail(userCreateDTO.getUserEmail())) {
-            throw new RuntimeException("Email déjà utilisé");
+            throw new ResourceAlreadyExistsException("Email déjà utilisé");
         }
 
         UserEntity user = new UserEntity();
@@ -40,14 +43,14 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserDTO getUserById(Long userId) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
         return convertToDTO(user);
     }
 
     @Transactional(readOnly = true)
     public UserDTO getUserByEmail(String email) {
         UserEntity user = userRepository.findByUserEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
         return convertToDTO(user);
     }
 
@@ -61,7 +64,7 @@ public class UserService {
     @Transactional
     public UserDTO updateUser(Long userId, UserUpdateDTO userUpdateDTO) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
         if (userUpdateDTO.getUserName() != null) {
             user.setUserName(userUpdateDTO.getUserName());
@@ -69,7 +72,7 @@ public class UserService {
         if (userUpdateDTO.getUserEmail() != null) {
             if (!user.getUserEmail().equals(userUpdateDTO.getUserEmail())
                     && userRepository.existsByUserEmail(userUpdateDTO.getUserEmail())) {
-                throw new RuntimeException("Email déjà utilisé");
+                throw new ResourceAlreadyExistsException("Email déjà utilisé");
             }
             user.setUserEmail(userUpdateDTO.getUserEmail());
         }
@@ -84,7 +87,7 @@ public class UserService {
     @Transactional
     public void deleteUser(Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("Utilisateur non trouvé");
+            throw new ResourceNotFoundException("Utilisateur non trouvé");
         }
         userRepository.deleteById(userId);
     }
@@ -100,24 +103,25 @@ public class UserService {
         );
     }
 
+    @Transactional
     public void updateUserPassword(Long userId, UserPasswordUpdateDTO passwordUpdateDTO) {
-        // Vérifier que l'utilisateur existe
+        // ✅ CORRECTION
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'ID: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
         // Vérifier que l'ancien mot de passe est correct
         if (!passwordEncoder.matches(passwordUpdateDTO.getOldPassword(), user.getUserPassword())) {
-            throw new RuntimeException("L'ancien mot de passe est incorrect");
+            throw new InvalidPasswordException("L'ancien mot de passe est incorrect");
         }
 
         // Vérifier que les nouveaux mots de passe correspondent
         if (!passwordUpdateDTO.getNewPassword().equals(passwordUpdateDTO.getConfirmPassword())) {
-            throw new RuntimeException("Les nouveaux mots de passe ne correspondent pas");
+            throw new InvalidPasswordException("Les nouveaux mots de passe ne correspondent pas");
         }
 
         // Vérifier que le nouveau mot de passe est différent de l'ancien
         if (passwordEncoder.matches(passwordUpdateDTO.getNewPassword(), user.getUserPassword())) {
-            throw new RuntimeException("Le nouveau mot de passe doit être différent de l'ancien");
+            throw new InvalidPasswordException("Le nouveau mot de passe doit être différent de l'ancien");
         }
 
         // Hasher et sauvegarder le nouveau mot de passe
@@ -130,7 +134,7 @@ public class UserService {
     // Méthode alternative pour l'admin (sans vérification de l'ancien mot de passe)
     public void resetUserPassword(Long userId, String newPassword) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'ID: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'ID: " + userId));
 
         String hashedPassword = passwordEncoder.encode(newPassword);
         user.setUserPassword(hashedPassword);
@@ -143,7 +147,7 @@ public class UserService {
      */
     public boolean verifyPassword(Long userId, String password) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'ID: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'ID: " + userId));
 
         return passwordEncoder.matches(password, user.getUserPassword());
     }
