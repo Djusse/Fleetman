@@ -34,6 +34,9 @@ public class UserEntity {
     @Column( nullable = false, length = 20)
     private String userPhoneNumber;
 
+    @Column(name = "token", length = 500)
+    private String token;
+
     @CreationTimestamp
     @Column( nullable = false, updatable = false)
     private LocalDateTime createdAt;

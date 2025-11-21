@@ -98,6 +98,7 @@ public class UserService {
                 user.getUserName(),
                 user.getUserEmail(),
                 user.getUserPhoneNumber(),
+                "",
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );
