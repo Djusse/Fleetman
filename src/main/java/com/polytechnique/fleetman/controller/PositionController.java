@@ -32,9 +32,9 @@ public class PositionController {
             summary = "Enregistrer une nouvelle position GPS",
             description = """
             Crée un nouvel enregistrement de position GPS pour un véhicule.
-            📍 **Géolocalisation** : Les coordonnées GPS sont obligatoires.
-            ⏰ **Horodatage** : La date et heure sont automatiquement enregistrées.
-            🚗 **Véhicule** : Chaque position doit être associée à un véhicule.
+            **Géolocalisation** : Les coordonnées GPS sont obligatoires.
+            **Horodatage** : La date et heure sont automatiquement enregistrées.
+            **Véhicule** : Chaque position doit être associée à un véhicule.
             """
     )
     @ApiResponses(value = {
@@ -65,7 +65,7 @@ public class PositionController {
                     content = @Content(schema = @Schema(implementation = PositionCreateDTO.class))
             )
             PositionCreateDTO positionCreateDTO) {
-        PositionDTO createdPosition = positionService.createPosition(positionCreateDTO);
+        PositionDTO createdPosition = positionService.savePositionIfNotAligned(positionCreateDTO);
         return new ResponseEntity<>(createdPosition, HttpStatus.CREATED);
     }
 

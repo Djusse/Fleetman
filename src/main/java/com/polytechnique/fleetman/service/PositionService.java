@@ -8,6 +8,8 @@ import com.polytechnique.fleetman.exception.ResourceNotFoundException;
 import com.polytechnique.fleetman.repository.PositionRepository;
 import com.polytechnique.fleetman.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.*;
+import org.locationtech.jts.operation.distance.DistanceOp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,45 @@ public class PositionService {
 
     private final PositionRepository positionRepository;
     private final VehicleRepository vehicleRepository;
+    private static final GeometryFactory geometryFactory = new GeometryFactory();
+    private static final double DISTANCE_THRESHOLD = 0.00009; // 10 mètres
+    private static final double INCERTITUDE = 0.00009; // ±10 mètres
+
+    /**
+     * Enregistre une nouvelle position seulement si elle n'est pas alignée
+     * avec les deux dernières positions
+     */
+    @Transactional
+    public PositionDTO savePositionIfNotAligned(PositionCreateDTO dto) {
+        // Récupérer les 2 dernières positions du véhicule/conducteur
+        List<PositionEntity> lastTwoPositions = positionRepository
+                .findLastTwoPositions(dto.getVehicleId());
+
+        // Si moins de 2 positions, enregistrer directement
+        if (lastTwoPositions.size() < 2) {
+            return createPosition(dto);
+        }
+
+        Point pointB = lastTwoPositions.get(0).getCoordinate(); // Dernière
+        // si les deux derniers points sont trop proche ne pas enregistrer
+        if(sontProchesAvecDistanceOp(pointB,dto.getCoordinate())){
+            return convertToDTO(lastTwoPositions.getFirst());
+        }
+
+        // Créer les points à partir des positions
+        Point pointA = lastTwoPositions.get(1).getCoordinate(); // Avant-dernière
+        Point pointC = dto.getCoordinate(); // Nouvelle position
+
+        // Vérifier l'alignement
+        if (existeDroite(pointA, pointB, pointC)) {
+            // Les 3 points sont alignés, ne pas enregistrer
+             return convertToDTO(lastTwoPositions.getFirst());
+        }
+
+        // Points non alignés, enregistrer la nouvelle position
+        return createPosition(dto);
+    }
+
 
     @Transactional
     public PositionDTO createPosition(PositionCreateDTO positionCreateDTO) {
@@ -76,6 +117,44 @@ public class PositionService {
         }
         positionRepository.deleteById(positionId);
     }
+
+    // fonction qui vérifie si deux points sont distants de moins de DISTANCE_THRESHOLD mètres
+    public static boolean sontProchesAvecDistanceOp(Point point1, Point point2) {
+        double distance = DistanceOp.distance(point1, point2);
+        return distance <= DISTANCE_THRESHOLD;
+    }
+
+    // fonction pour dire si les points A,B et C sont presque alignés
+    public static boolean existeDroite(Point A, Point B, Point C) {
+        // Test de rejet hyper-rapide (95% des cas)
+        if (testRejetTresRapide(A, B, C)) {
+            return false;
+        }
+
+        // Pour les 5% restants, méthode précise
+        return existeDroitePassantParZones(A, B, C);
+    }
+
+    private static boolean testRejetTresRapide(Point pointA, Point pointB, Point pointC) {
+        LineSegment segment = new LineSegment(
+                pointA.getCoordinate(),
+                pointB.getCoordinate()
+        );
+        return segment.distance(pointC.getCoordinate()) > (INCERTITUDE * 3.0);
+    }
+
+    public static boolean existeDroitePassantParZones(Point pointA, Point pointB, Point pointC) {
+        Geometry zoneA = pointA.buffer(INCERTITUDE);
+        Geometry zoneB = pointB.buffer(INCERTITUDE);
+        Geometry zoneC = pointC.buffer(INCERTITUDE);
+
+        Geometry enveloppeAB = geometryFactory.createGeometryCollection(
+                new Geometry[]{zoneA, zoneB}
+        ).convexHull();
+
+        return enveloppeAB.intersects(zoneC);
+    }
+
 
     private PositionDTO convertToDTO(PositionEntity position) {
         PositionDTO dto = new PositionDTO();

@@ -17,9 +17,13 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
 
     List<PositionEntity> findByPositionDateTimeBetween(LocalDateTime start, LocalDateTime end);
 
-    @Query("SELECT p FROM PositionEntity p WHERE p.vehicle.vehicleId = :vehicleId ORDER BY p.positionDateTime DESC")
-    List<PositionEntity> findLatestPositionsByVehicle(@Param("vehicleId") Long vehicleId);
-
+    /**
+     * Récupère les 2 dernières positions d'un véhicule
+     */
+    @Query(value = "SELECT * FROM position WHERE vehicle_id = :vehicleId " +
+            "ORDER BY position_date_time DESC LIMIT 2",
+            nativeQuery = true)
+    List<PositionEntity> findLastTwoPositions(@Param("vehicleId") Long vehicleId);
     @Query("SELECT p FROM PositionEntity p WHERE p.vehicle.vehicleId = :vehicleId ORDER BY p.positionDateTime DESC LIMIT 1")
     Optional<PositionEntity> findLatestPositionByVehicle(@Param("vehicleId") Long vehicleId);
 }

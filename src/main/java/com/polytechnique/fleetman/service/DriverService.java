@@ -40,6 +40,7 @@ public class DriverService {
         driver.setEmergencyContactName(driverCreateDTO.getEmergencyContactName());
         driver.setEmergencyContact(driverCreateDTO.getEmergencyContact());
         driver.setPersonalInformations(driverCreateDTO.getPersonalInformations());
+        driver.setUser(user);
 
         DriverEntity savedDriver = driverRepository.save(driver);
         return convertToDTO(savedDriver);
